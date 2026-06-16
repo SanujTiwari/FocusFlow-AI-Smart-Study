@@ -1,0 +1,57 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Build and dist files
+dist/
+build/
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Java/Maven (for backend target folder)
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+.cache/
+tmp/
+temp/
+
+# Package lock files (optional - uncomment if you want to commit these)
+# package-lock.json
+# yarn.lock
+
+# IDE workspace settings
+.workspace
+*.sublime-workspace
