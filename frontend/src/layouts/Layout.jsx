@@ -57,18 +57,22 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className={`${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col h-full bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl border-r border-gray-200/50 dark:border-white/5 transition-all duration-300 ease-in-out`}>
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-100 dark:border-white/5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0">
-            <GraduationCap className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-100 dark:border-white/5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/25">
+            <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" />
+              <polygon points="12,7 13.5,10 16.5,10 14.2,12 15,15 12,13.2 9,15 9.8,12 7.5,10 10.5,10" fill="white" />
+            </svg>
           </div>
           {isOpen && (
-            <motion.span
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-xl font-bold gradient-text"
+              className="text-left"
             >
-              FocusFlow
-            </motion.span>
+              <span className="text-lg font-bold font-serif text-gray-900 dark:text-white tracking-tight leading-none block">FocusFlow</span>
+              <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">AI study planner</span>
+            </motion.div>
           )}
         </div>
 
@@ -121,10 +125,16 @@ export default function Layout() {
               {isOpen ? <X className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
             </button>
             <div className="md:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" />
+                  <polygon points="12,7 13.5,10 16.5,10 14.2,12 15,15 12,13.2 9,15 9.8,12 7.5,10 10.5,10" fill="white" />
+                </svg>
               </div>
-              <span className="font-bold gradient-text">FocusFlow</span>
+              <div className="text-left">
+                <span className="font-bold font-serif text-gray-900 dark:text-white leading-none block">FocusFlow</span>
+                <span className="text-[8px] text-slate-400 font-semibold block">AI study planner</span>
+              </div>
             </div>
           </div>
 

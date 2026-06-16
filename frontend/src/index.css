@@ -127,4 +127,11 @@
   .shadow-glow-purple {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
   }
+  .bg-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 36px 36px;
+    background-position: center;
+  }
 }
