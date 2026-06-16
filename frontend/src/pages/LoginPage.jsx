@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, GraduationCap, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Sparkles, BookOpen, Clock, Award, CheckCircle2 } from 'lucide-react';
 import { authAPI } from '../services/api';
 import { useAuthStore } from '../store';
 import toast from 'react-hot-toast';
@@ -30,95 +30,184 @@ export default function LoginPage() {
     }
   };
 
+  const mockTimeline = [
+    { time: '09:00 AM', label: 'AI Study: Mathematics', type: 'study', color: 'from-blue-500 to-indigo-500', desc: 'Focus: Calculus limits & derivatives' },
+    { time: '10:30 AM', label: 'Rest Break', type: 'break', color: 'from-emerald-400 to-teal-500', desc: 'Hydrate & walk around' },
+    { time: '10:45 AM', label: 'AI Review: Physics', type: 'revision', color: 'from-purple-500 to-pink-500', desc: 'Active recall: Electromagnetism' },
+    { time: '12:15 PM', label: 'Daily Goal Met!', type: 'goal', color: 'from-amber-400 to-orange-500', desc: 'Streak maintained: 5 days 🔥' },
+  ];
+
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 relative overflow-hidden">
-      {/* Animated Background Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-float" />
-      </div>
-
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex flex-1 items-center justify-center p-12 relative">
+    <div className="min-h-screen flex bg-slate-950 text-slate-100 relative overflow-hidden font-sans">
+      {/* Background Neon Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-md text-center"
-        >
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-400 to-purple-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary-500/30">
-            <GraduationCap className="w-14 h-14 text-white" />
-          </div>
-          <h1 className="text-5xl font-black text-white mb-4">FocusFlow</h1>
-          <p className="text-xl text-gray-300 mb-8">AI-Powered Study Planner</p>
-          <div className="space-y-4 text-left">
-            {['Smart AI Schedule Generation', 'Progress Tracking & Analytics', 'Adaptive Rescheduling', 'Pomodoro Timer Built-in'].map((feat, i) => (
-              <motion.div
-                key={feat}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.15 }}
-                className="flex items-center gap-3"
-              >
-                <Sparkles className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                <span className="text-gray-300">{feat}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+          animate={{
+            x: [0, 60, -40, 0],
+            y: [0, -80, 50, 0],
+            scale: [1, 1.2, 0.85, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -top-20 -left-20 w-[450px] h-[450px] bg-primary-600/15 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -80, 50, 0],
+            y: [0, 60, -70, 0],
+            scale: [1, 0.9, 1.15, 1],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+          className="absolute top-1/3 -right-20 w-[400px] h-[400px] bg-purple-600/15 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, 30, -50, 0],
+            y: [0, 50, 60, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4,
+          }}
+          className="absolute -bottom-20 left-1/3 w-[350px] h-[350px] bg-emerald-500/10 rounded-full blur-[100px]"
+        />
       </div>
 
-      {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      {/* Left Side - Interactive Showcase */}
+      <div className="hidden lg:flex flex-1 items-center justify-center p-12 relative z-10 border-r border-slate-900/50 bg-slate-950/40 backdrop-blur-xl">
+        <div className="max-w-lg w-full text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 via-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary-500/30"
+          >
+            <GraduationCap className="w-11 h-11 text-white animate-pulse" />
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl font-extrabold tracking-tight mb-2 font-display bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent"
+          >
+            FocusFlow
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-lg text-slate-400 mb-8"
+          >
+            Your AI Study Planner
+          </motion.p>
+
+          {/* Interactive Study Timeline Mockup */}
+          <div className="glass-card-strong p-6 text-left border border-white/10 shadow-2xl relative overflow-hidden bg-slate-900/50">
+            <div className="absolute top-0 right-0 p-3">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-primary-400 bg-primary-500/10 px-2.5 py-1 rounded-full border border-primary-500/20 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-primary-400" /> AI Generating Plan
+              </span>
+            </div>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary-400" /> Today's Dynamic Schedule
+            </h3>
+            
+            <div className="space-y-4 relative border-l-2 border-slate-800 ml-2.5 pl-6">
+              {mockTimeline.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + idx * 0.15 }}
+                  className="relative group cursor-default"
+                >
+                  {/* Timeline bullet dot */}
+                  <div className={`absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-slate-900 border-2 border-primary-500 flex items-center justify-center transition-all group-hover:scale-125`}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary-400" />
+                  </div>
+                  
+                  <div className="bg-slate-950/40 hover:bg-slate-900/50 p-3 rounded-xl border border-slate-800/60 hover:border-slate-700/50 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-slate-500 font-mono font-medium">{item.time}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold bg-gradient-to-r ${item.color} text-white shadow-sm`}>
+                        {item.type}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{item.label}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Premium Form Container */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          <div className="bg-white/10 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          {/* Main Glass Form */}
+          <div className="bg-slate-900/65 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 lg:p-10 shadow-2xl shadow-black/40">
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-400 to-purple-600 flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
                 <GraduationCap className="w-7 h-7 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">FocusFlow</span>
+              <span className="text-2xl font-bold font-display bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                FocusFlow
+              </span>
             </div>
 
-            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-gray-400 mb-8">Sign in to continue your study journey</p>
+            <h2 className="text-3xl font-extrabold text-white mb-2 font-display">Welcome Back</h2>
+            <p className="text-slate-400 mb-8 text-sm">Sign in to resume your premium study journey</p>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                <input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-                  placeholder="you@example.com"
-                  required
-                />
+                <label className="block text-xs uppercase tracking-wider font-semibold text-slate-400 mb-2">Email Address</label>
+                <div className="relative">
+                  <input
+                    id="login-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-slate-400">Password</label>
+                </div>
                 <div className="relative">
                   <input
                     id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all pr-12"
+                    className="input-field pr-12"
                     placeholder="••••••••"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -129,11 +218,11 @@ export default function LoginPage() {
                 id="login-submit"
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-purple-600 hover:from-primary-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full btn-primary font-bold mt-2"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+                    <svg className="animate-spin w-5 h-5 text-white" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
@@ -143,9 +232,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-gray-400">
+            <p className="mt-8 text-center text-sm text-slate-400">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-semibold transition-colors">
+              <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-bold transition-colors">
                 Sign Up
               </Link>
             </p>

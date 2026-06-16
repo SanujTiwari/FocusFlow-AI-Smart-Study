@@ -22,7 +22,7 @@ export const sequelize = new Sequelize(databaseUrl, {
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log('PostgreSQL Connected successfully');
   } catch (error) {
     console.error(`Error: ${error.message}`);

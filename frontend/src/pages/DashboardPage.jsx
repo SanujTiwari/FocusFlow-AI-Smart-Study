@@ -1,14 +1,32 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Calendar, CheckCircle2, XCircle, Clock, Flame,
-  BookOpen, Sparkles, RefreshCw, ArrowRight, AlertTriangle
+  BookOpen, Sparkles, RefreshCw, ArrowRight, AlertTriangle, Quote, Lightbulb
 } from 'lucide-react';
 import { scheduleAPI, subjectAPI, analyticsAPI } from '../services/api';
 import { useAuthStore } from '../store';
 import toast from 'react-hot-toast';
 import PomodoroTimer from '../components/PomodoroTimer';
+
+const STUDY_QUOTES = [
+  { quote: "Focus is a muscle, and you are building it session by session.", author: "FocusFlow AI" },
+  { quote: "Your future self will thank you for the effort you put in today.", author: "Anonymous" },
+  { quote: "Deep work is the superpower of the 21st century.", author: "Cal Newport" },
+  { quote: "Don't count the days, make the days count.", author: "Muhammad Ali" },
+  { quote: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+  { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" }
+];
+
+const STUDY_TIPS = [
+  "Use the Pomodoro technique: study intensely for 25 minutes, then take a 5-minute stretch break to rest your mind.",
+  "Try Active Recall: write down everything you remember about a chapter without looking at your notes.",
+  "Studies show that mild dehydration impairs cognitive speed. Keep a water bottle on your desk!",
+  "Minimize context switching. Put your phone in another room or turn on 'Do Not Disturb' while studying.",
+  "Commit to just 5 minutes of study. Often, starting is the hardest part, and you'll easily keep going once you begin.",
+  "Space out your revision. Reviewing a topic at 1-day, 3-day, and 7-day intervals solidifies it in long-term memory."
+];
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -21,10 +39,17 @@ export default function DashboardPage() {
   const [generating, setGenerating] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
 
+  // Focus Hub states
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
+
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     loadDashboard();
+    // Pick random indices initially
+    setQuoteIndex(Math.floor(Math.random() * STUDY_QUOTES.length));
+    setTipIndex(Math.floor(Math.random() * STUDY_TIPS.length));
   }, []);
 
   const loadDashboard = async () => {
@@ -48,6 +73,12 @@ export default function DashboardPage() {
     }
   };
 
+  const rollFocusHub = () => {
+    setQuoteIndex((prev) => (prev + 1) % STUDY_QUOTES.length);
+    setTipIndex((prev) => (prev + 1) % STUDY_TIPS.length);
+    toast('Focus Hub refreshed! ✨', { icon: '🔄', duration: 1500 });
+  };
+
   const handleGenerate = async () => {
     if (subjects.length === 0) {
       toast.error('Add subjects first before generating a schedule!');
@@ -57,7 +88,7 @@ export default function DashboardPage() {
     setGenerating(true);
     try {
       await scheduleAPI.generate({ startDate: today, numberOfDays: 7 });
-      toast.success('Schedule generated! 🎉');
+      toast.success('AI Schedule generated! 🎉');
       loadDashboard();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to generate schedule');
@@ -119,113 +150,188 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+    <div className="space-y-6 animate-fade-in font-sans">
+      {/* Top Banner Greeting */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {getGreeting()}, <span className="gradient-text">{user?.name?.split(' ')[0]}</span>! 👋
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white font-display">
+            {getGreeting()}, <span className="gradient-text-vibrant">{user?.name?.split(' ')[0]}</span>! 👋
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
         <div className="flex gap-3">
-          <button onClick={handleGenerate} disabled={generating} className="btn-primary flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            {generating ? 'Generating...' : 'Generate Schedule'}
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Sparkles className="w-5 h-5 text-white animate-spin" style={{ animationDuration: '4s' }} />
+            {generating ? 'Regenerating...' : 'Generate AI Plan'}
           </button>
         </div>
       </div>
 
-      {/* Missed Tasks Alert */}
+      {/* Missed Tasks Warning Banner */}
       {missedCount > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/30 rounded-2xl"
+          className="flex items-center justify-between p-4.5 bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 dark:border-amber-800/30 rounded-2xl"
         >
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            <span className="text-amber-700 dark:text-amber-400 font-medium">
-              You have {missedCount} missed task{missedCount > 1 ? 's' : ''}
-            </span>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-amber-800 dark:text-amber-400">Schedule Adaptation Available</p>
+              <p className="text-xs text-amber-700/80 dark:text-amber-500/80 mt-0.5">
+                You have {missedCount} study block{missedCount > 1 ? 's' : ''} flagged as missed. Let FocusFlow adjust your schedule.
+              </p>
+            </div>
           </div>
           <button
             onClick={handleReschedule}
             disabled={rescheduling}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors text-sm"
+            className="flex items-center gap-2 px-4.5 py-2.5 bg-amber-500 hover:bg-amber-600 hover:scale-105 active:scale-95 text-white rounded-xl font-bold transition-all text-xs shadow-md shadow-amber-500/20"
           >
-            <RefreshCw className={`w-4 h-4 ${rescheduling ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${rescheduling ? 'animate-spin' : ''}`} />
             Reschedule
           </button>
         </motion.div>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="stat-card">
-          <div className="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-950/50 flex items-center justify-center">
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="stat-card shadow-glow-primary border-slate-100 dark:border-white/5 bg-white/60 dark:bg-slate-900/40"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-950/40 flex items-center justify-center">
             <Calendar className="w-6 h-6 text-primary-500" />
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">{totalToday}</span>
-          <span className="text-sm text-gray-500">Today's Tasks</span>
+          <span className="text-3xl font-extrabold text-gray-900 dark:text-white font-mono">{totalToday}</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Today's Tasks</span>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="stat-card">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="stat-card shadow-glow-emerald border-slate-100 dark:border-white/5 bg-white/60 dark:bg-slate-900/40"
+        >
+          <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6 text-emerald-500" />
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">{completedToday}</span>
-          <span className="text-sm text-gray-500">Completed</span>
+          <span className="text-3xl font-extrabold text-gray-900 dark:text-white font-mono">{completedToday}</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Completed</span>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="stat-card">
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center">
-            <Flame className="w-6 h-6 text-amber-500" />
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="stat-card shadow-glow-amber border-slate-100 dark:border-white/5 bg-white/60 dark:bg-slate-900/40"
+        >
+          <div className="w-12 h-12 rounded-xl bg-amber-100/70 dark:bg-amber-950/40 flex items-center justify-center">
+            <Flame className="w-6 h-6 text-amber-500 animate-pulse" />
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">{analytics?.currentStreak || 0}</span>
-          <span className="text-sm text-gray-500">Day Streak 🔥</span>
+          <span className="text-3xl font-extrabold text-gray-900 dark:text-white font-mono">{analytics?.currentStreak || 0}</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Day Streak 🔥</span>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="stat-card">
-          <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="stat-card shadow-glow-purple border-slate-100 dark:border-white/5 bg-white/60 dark:bg-slate-900/40"
+        >
+          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/40 flex items-center justify-center">
             <BookOpen className="w-6 h-6 text-purple-500" />
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">{subjects.length}</span>
-          <span className="text-sm text-gray-500">Subjects</span>
+          <span className="text-3xl font-extrabold text-gray-900 dark:text-white font-mono">{subjects.length}</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Subjects</span>
         </motion.div>
       </div>
 
+      {/* New Feature: Focus Hub Motivational Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="glass-card-strong p-6 border-white/20 dark:border-white/5 relative overflow-hidden bg-gradient-to-r from-slate-900/80 via-indigo-950/40 to-slate-900/80"
+      >
+        {/* Shimmer overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-4 flex-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary-400" />
+              <span className="text-xs uppercase font-extrabold tracking-widest text-primary-400">Daily Focus Hub</span>
+            </div>
+            
+            {/* Quote of the Day */}
+            <div className="flex items-start gap-3">
+              <Quote className="w-5 h-5 text-slate-500 flex-shrink-0 mt-1" />
+              <div>
+                <p className="text-base font-medium text-slate-200 italic leading-relaxed">
+                  "{STUDY_QUOTES[quoteIndex].quote}"
+                </p>
+                <p className="text-xs text-slate-400 mt-1 font-bold">— {STUDY_QUOTES[quoteIndex].author}</p>
+              </div>
+            </div>
+
+            {/* Cognitive Study Tip */}
+            <div className="flex items-start gap-3 pt-2 border-t border-slate-800">
+              <Lightbulb className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="text-xs uppercase font-extrabold tracking-wider text-amber-400 block mb-0.5">Study Hack</span>
+                <p className="text-sm text-slate-300">{STUDY_TIPS[tipIndex]}</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={rollFocusHub}
+            className="self-start md:self-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 hover:scale-105 transition-all flex items-center gap-2 text-xs font-bold"
+          >
+            <RefreshCw className="w-4 h-4" /> Roll Tip & Quote
+          </button>
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's Schedule */}
-        <div className="lg:col-span-2 glass-card p-6">
+        {/* Today's Schedule panel */}
+        <div className="lg:col-span-2 glass-card p-6 border-white/20 dark:border-white/5 shadow-lg">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white font-display flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary-500" />
               Today's Schedule
             </h2>
             {totalToday > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="w-24 h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-primary-500 via-indigo-500 to-accent-500 rounded-full transition-all duration-500"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-500">{Math.round(progressPercent)}%</span>
+                <span className="text-xs font-extrabold text-gray-500 dark:text-slate-400">{Math.round(progressPercent)}% Done</span>
               </div>
             )}
           </div>
 
           {todaySchedule.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-16">
               <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">No schedule for today</h3>
-              <p className="text-gray-500 dark:text-gray-500 mb-6">Generate an AI-powered study plan to get started!</p>
-              <button onClick={handleGenerate} className="btn-primary inline-flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                Generate Schedule
+              <h3 className="text-lg font-bold text-gray-650 dark:text-gray-400 mb-1">No schedule created for today</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">Let FocusFlow coordinate your tasks based on subject priorities.</p>
+              <button onClick={handleGenerate} className="btn-primary inline-flex items-center gap-2 font-bold shadow-md">
+                <Sparkles className="w-4 h-4" /> Generate AI Schedule
               </button>
             </div>
           ) : (
@@ -233,56 +339,62 @@ export default function DashboardPage() {
               {todaySchedule.map((item, i) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
+                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${
                     item.status === 'COMPLETED'
-                      ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/30'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 opacity-70'
                       : item.status === 'MISSED'
-                      ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-800/30 opacity-60'
-                      : 'bg-white/50 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-primary-200 dark:hover:border-primary-800/30'
+                      ? 'bg-red-500/5 border-red-500/20 opacity-55'
+                      : 'bg-white/45 dark:bg-slate-900/40 border-gray-150 dark:border-white/5 hover:border-primary-500/20 hover:scale-[1.01]'
                   }`}
                 >
-                  {/* Color Bar */}
-                  <div className="w-1 h-12 rounded-full flex-shrink-0" style={{ backgroundColor: item.subjectColor }} />
+                  {/* Left color bar */}
+                  <div className="w-1.5 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: item.subjectColor }} />
 
-                  {/* Time */}
-                  <div className="text-center flex-shrink-0 w-20">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.startTime?.slice(0, 5)}</p>
-                    <p className="text-xs text-gray-400">{item.endTime?.slice(0, 5)}</p>
+                  {/* Time info */}
+                  <div className="text-center flex-shrink-0 w-16">
+                    <p className="text-sm font-extrabold text-gray-900 dark:text-white font-mono">{item.startTime?.slice(0, 5)}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono mt-0.5">{item.endTime?.slice(0, 5)}</p>
                   </div>
 
-                  {/* Info */}
+                  {/* Subject info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 dark:text-white truncate">
-                      {item.subjectName}
-                      {item.isRevision && <span className="ml-2 text-xs badge bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">Revision</span>}
-                    </p>
-                    <p className="text-sm text-gray-500 truncate">{item.taskDescription}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-gray-900 dark:text-white truncate text-sm">{item.subjectName}</span>
+                      {item.isRevision && (
+                        <span className="badge bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-bold">
+                          Revision
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{item.taskDescription}</p>
                   </div>
 
-                  {/* Status Badge */}
+                  {/* Actions / Badge */}
                   <div className="flex-shrink-0">
                     {item.status === 'COMPLETED' ? (
                       <span className="badge-completed">Done</span>
                     ) : item.status === 'MISSED' ? (
                       <span className="badge-missed">Missed</span>
                     ) : item.taskType === 'BREAK' ? (
-                      <span className="badge bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">Break</span>
+                      <span className="text-[10px] uppercase font-bold text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                        Break
+                      </span>
                     ) : (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleComplete(item.id)}
-                          className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 hover:bg-emerald-200 dark:hover:bg-emerald-800/30 transition-colors"
-                          title="Mark Complete"
+                          className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white transition-all hover:scale-105 border border-emerald-500/15"
+                          title="Complete Block"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleSkip(item.id)}
-                          className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 dark:hover:bg-red-800/30 transition-colors"
-                          title="Skip"
+                          className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-650 hover:text-white transition-all hover:scale-105 border border-red-500/15"
+                          title="Skip Block"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -295,31 +407,31 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar Column */}
         <div className="space-y-6">
-          {/* Pomodoro Timer */}
+          {/* Pomodoro Timer widget */}
           <PomodoroTimer />
 
-          {/* Upcoming Exams */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          {/* Upcoming Exams panel */}
+          <div className="glass-card p-6 border-white/20 dark:border-white/5 shadow-lg">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 font-display">
               <Calendar className="w-5 h-5 text-primary-500" />
               Upcoming Exams
             </h3>
             {subjects.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">No subjects added yet</p>
+              <p className="text-xs text-gray-500 text-center py-4 italic">No subjects added yet</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {subjects.slice(0, 5).map((sub) => (
                   <div key={sub.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sub.colorCode }} />
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{sub.subjectName}</span>
                     </div>
-                    <span className={`text-xs font-bold flex-shrink-0 ${
-                      sub.daysUntilExam <= 3 ? 'text-red-500' : sub.daysUntilExam <= 7 ? 'text-amber-500' : 'text-gray-500'
+                    <span className={`text-xs font-extrabold font-mono flex-shrink-0 ${
+                      sub.daysUntilExam <= 3 ? 'text-red-500' : sub.daysUntilExam <= 7 ? 'text-amber-500' : 'text-gray-550 dark:text-slate-400'
                     }`}>
-                      {sub.daysUntilExam === 0 ? 'Today!' : `${sub.daysUntilExam}d`}
+                      {sub.daysUntilExam === 0 ? 'Today!' : `${sub.daysUntilExam}d left`}
                     </span>
                   </div>
                 ))}
@@ -327,9 +439,9 @@ export default function DashboardPage() {
             )}
             <button
               onClick={() => navigate('/subjects')}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2 text-sm text-primary-500 hover:text-primary-600 font-medium transition-colors"
+              className="mt-5 w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-primary-500 hover:text-primary-600 transition-colors uppercase tracking-wider"
             >
-              View All <ArrowRight className="w-4 h-4" />
+              View Subjects <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

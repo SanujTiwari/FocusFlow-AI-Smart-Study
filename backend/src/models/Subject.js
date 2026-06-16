@@ -27,6 +27,10 @@ const Subject = sequelize.define('Subject', {
   colorCode: {
     type: DataTypes.STRING,
   },
+  syllabus: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
 }, { timestamps: true });
 
 Subject.belongsTo(User, { foreignKey: 'userId' });
