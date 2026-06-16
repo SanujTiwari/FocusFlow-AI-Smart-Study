@@ -24,27 +24,13 @@ export const useAuthStore = create((set) => ({
 }));
 
 export const useThemeStore = create((set) => ({
-  darkMode: localStorage.getItem('darkMode') === 'true' ||
-    (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+  darkMode: true,
 
-  toggleDarkMode: () => set((state) => {
-    const newMode = !state.darkMode;
-    localStorage.setItem('darkMode', String(newMode));
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    return { darkMode: newMode };
-  }),
+  toggleDarkMode: () => {}, // Locked to premium dark mode
 
   initTheme: () => set((state) => {
-    if (state.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    return state;
+    document.documentElement.classList.add('dark');
+    return { darkMode: true };
   }),
 }));
 

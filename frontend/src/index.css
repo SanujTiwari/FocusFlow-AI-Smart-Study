@@ -43,11 +43,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/60 dark:bg-surface-900/60 backdrop-blur-xl border border-white/30 dark:border-white/5 rounded-2xl shadow-xl hover:shadow-2xl hover:border-white/45 dark:hover:border-white/10 transition-all duration-300;
+    @apply bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-xl hover:shadow-2xl hover:border-white/10 transition-all duration-300;
   }
 
   .glass-card-strong {
-    @apply bg-white/85 dark:bg-surface-900/85 backdrop-blur-2xl border border-white/40 dark:border-white/15 rounded-2xl shadow-2xl;
+    @apply bg-slate-950/65 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-2xl;
   }
 
   .btn-primary {

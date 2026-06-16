@@ -84,7 +84,7 @@ export default function LoginPage() {
       </motion.div>
 
       {/* Main Two-Column Layout */}
-      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20 max-w-6xl w-full mx-auto my-8 z-10">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-36 max-w-7xl w-full mx-auto my-8 z-10">
         
         {/* Left Side: Mock Live Dashboard */}
         <motion.div

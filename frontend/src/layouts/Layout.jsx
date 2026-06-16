@@ -53,9 +53,40 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-surface-950 dark:via-surface-900 dark:to-surface-950 overflow-hidden">
+    <div className="flex h-screen bg-slate-950 bg-grid text-slate-100 overflow-hidden relative font-sans">
+      {/* Background neon light layers (underneath grid) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div
+          animate={{
+            x: [0, 50, -40, 0],
+            y: [0, -70, 50, 0],
+            scale: [1, 1.15, 0.9, 1],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -60, 50, 0],
+            y: [0, 70, -60, 0],
+            scale: [1, 0.9, 1.1, 1],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3,
+          }}
+          className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px]"
+        />
+      </div>
+
       {/* Sidebar */}
-      <aside className={`${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col h-full bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl border-r border-gray-200/50 dark:border-white/5 transition-all duration-300 ease-in-out`}>
+      <aside className={`${isOpen ? 'w-64' : 'w-20'} hidden md:flex flex-col h-full bg-slate-950/45 backdrop-blur-xl border-r border-white/5 transition-all duration-300 ease-in-out z-10`}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-100 dark:border-white/5">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-cyan-500/25">
@@ -94,21 +125,21 @@ export default function Layout() {
         </nav>
 
         {/* User Section */}
-        <div className="px-3 py-4 border-t border-gray-100 dark:border-white/5">
+        <div className="px-3 py-4 border-t border-white/5">
           {isOpen && (
             <div className="flex items-center gap-3 px-4 py-3 mb-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center text-white font-bold text-sm">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-sm font-semibold text-slate-200 truncate">{user?.name}</p>
+                <p className="text-xs text-slate-400 truncate">{user?.email}</p>
               </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`nav-link w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 ${!isOpen ? 'justify-center px-3' : ''}`}
+            className={`nav-link w-full text-red-500 hover:bg-red-950/20 hover:text-red-400 ${!isOpen ? 'justify-center px-3' : ''}`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {isOpen && <span>Logout</span>}
@@ -117,12 +148,12 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Top Bar */}
-        <header className="h-16 flex items-center justify-between px-4 md:px-8 bg-white/50 dark:bg-surface-900/50 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/5">
+        <header className="h-16 flex items-center justify-between px-4 md:px-8 bg-slate-950/20 backdrop-blur-xl border-b border-white/5 z-10">
           <div className="flex items-center gap-4">
-            <button onClick={toggle} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-              {isOpen ? <X className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
+            <button onClick={toggle} className="p-2 rounded-xl hover:bg-slate-900 text-slate-400 transition-colors">
+              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <div className="md:hidden flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/25">
@@ -139,24 +170,11 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={toggleDarkMode}
-              className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-all duration-300"
-              id="dark-mode-toggle"
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5 text-amber-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-
             {/* Notification Bell */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-all duration-300 relative"
+                className="p-2.5 rounded-xl bg-slate-900 border border-white/5 hover:bg-slate-800 transition-all duration-300 relative"
                 id="notification-bell"
               >
                 <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -209,12 +227,12 @@ export default function Layout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 z-10">
           <Outlet />
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden flex items-center justify-around py-2 bg-white/80 dark:bg-surface-900/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-white/5">
+        <nav className="md:hidden flex items-center justify-around py-2 bg-slate-950/80 backdrop-blur-xl border-t border-white/5 z-10">
           {navItems.slice(0, 5).map((item) => (
             <NavLink
               key={item.path}
@@ -222,7 +240,7 @@ export default function Layout() {
               end={item.path === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-1 p-2 rounded-xl transition-colors ${
-                  isActive ? 'text-primary-500' : 'text-gray-400'
+                  isActive ? 'text-primary-400' : 'text-slate-500 hover:text-slate-300'
                 }`
               }
             >
