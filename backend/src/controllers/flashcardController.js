@@ -62,16 +62,33 @@ export const generateAIFlashcards = async (req, res) => {
     // Call Gemini API to generate QA pairs
     const cards = await generateFlashcardsForSubject(subject.subjectName, chapters);
 
-    const flashcardRecords = cards.map(c => ({
-      userId: req.user.id,
-      subjectId,
-      front: c.front,
-      back: c.back,
-      nextReviewDate: new Date(),
-      easeFactor: 2.5,
-      interval: 0,
-      repetitions: 0
-    }));
+    if (!Array.isArray(cards)) {
+      return res.status(400).json({ message: 'AI returned an invalid layout. Please try again.' });
+    }
+
+    const flashcardRecords = cards.map(c => {
+      const frontText = c.front || c.question || c.concept || c.q || '';
+      const backText = c.back || c.answer || c.explanation || c.a || '';
+      
+      if (!frontText.trim() || !backText.trim()) {
+        return null; // Skip invalid pairs
+      }
+
+      return {
+        userId: req.user.id,
+        subjectId,
+        front: frontText.trim(),
+        back: backText.trim(),
+        nextReviewDate: new Date(),
+        easeFactor: 2.5,
+        interval: 0,
+        repetitions: 0
+      };
+    }).filter(Boolean);
+
+    if (flashcardRecords.length === 0) {
+      return res.status(400).json({ message: 'AI was unable to generate any valid Q&A flashcards' });
+    }
 
     const newFlashcards = await Flashcard.bulkCreate(flashcardRecords);
     res.status(201).json({ message: 'Flashcards generated successfully', count: newFlashcards.length, data: newFlashcards });
