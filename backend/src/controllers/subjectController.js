@@ -1,4 +1,5 @@
 import Subject from '../models/Subject.js';
+import { parseSyllabusFromText, parseSyllabusFromFile } from '../services/geminiService.js';
 
 export const getSubjects = async (req, res) => {
   try {
@@ -48,6 +49,32 @@ export const deleteSubject = async (req, res) => {
     }
     await subject.destroy();
     res.json({ message: 'Subject removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const parseSyllabusText = async (req, res) => {
+  const { text } = req.body;
+  if (!text) {
+    return res.status(400).json({ message: 'Syllabus text content is required' });
+  }
+  try {
+    const chapters = await parseSyllabusFromText(text);
+    res.json(chapters);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const parseSyllabusFile = async (req, res) => {
+  const { base64Data, mimeType } = req.body;
+  if (!base64Data || !mimeType) {
+    return res.status(400).json({ message: 'Syllabus file data and mimeType are required' });
+  }
+  try {
+    const chapters = await parseSyllabusFromFile(base64Data, mimeType);
+    res.json(chapters);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

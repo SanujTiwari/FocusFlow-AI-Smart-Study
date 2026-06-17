@@ -121,3 +121,154 @@ For BREAK entries, use subjectName as "Break".
     throw new Error('Failed to generate study plan. Please try again.');
   }
 };
+
+export const parseSyllabusFromText = async (text) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key is missing');
+  }
+
+  const prompt = `
+You are an expert academic curriculum parsing agent.
+Analyze the following copy-pasted syllabus content and extract a clean list of individual chapters, topics, or units.
+
+Syllabus Content:
+${text}
+
+Generate a JSON array of strings containing the chapter names:
+[
+  "Chapter Name 1",
+  "Chapter Name 2"
+]
+
+Return ONLY the JSON array. Do not include markdown fences or any explanation. Ensure chapter names are concise (max 80 chars).
+`;
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2
+        }
+      }
+    );
+
+    let resultText = response.data.candidates[0].content.parts[0].text;
+    resultText = resultText.trim();
+    if (resultText.startsWith('\`\`\`json')) resultText = resultText.substring(7);
+    if (resultText.startsWith('\`\`\`')) resultText = resultText.substring(3);
+    if (resultText.endsWith('\`\`\`')) resultText = resultText.substring(0, resultText.length - 3);
+
+    return JSON.parse(resultText.trim());
+  } catch (error) {
+    console.error('Gemini parseSyllabusFromText failed:', error.message);
+    throw new Error('Failed to parse syllabus text using AI');
+  }
+};
+
+export const parseSyllabusFromFile = async (base64Data, mimeType) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key is missing');
+  }
+
+  const textPart = {
+    text: `You are an expert academic curriculum parsing agent.
+Analyze the attached syllabus document (PDF/Image/Text) and extract a clean list of individual chapters, topics, or units.
+
+Generate a JSON array of strings containing the chapter names:
+[
+  "Chapter Name 1",
+  "Chapter Name 2"
+]
+
+Return ONLY the JSON array. Do not include markdown fences or any explanation. Ensure chapter/topic names are concise (max 80 chars).`
+  };
+
+  const filePart = {
+    inlineData: {
+      mimeType: mimeType,
+      data: base64Data
+    }
+  };
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [textPart, filePart] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2
+        }
+      }
+    );
+
+    let resultText = response.data.candidates[0].content.parts[0].text;
+    resultText = resultText.trim();
+    if (resultText.startsWith('\`\`\`json')) resultText = resultText.substring(7);
+    if (resultText.startsWith('\`\`\`')) resultText = resultText.substring(3);
+    if (resultText.endsWith('\`\`\`')) resultText = resultText.substring(0, resultText.length - 3);
+
+    return JSON.parse(resultText.trim());
+  } catch (error) {
+    console.error('Gemini parseSyllabusFromFile failed:', error.message);
+    if (error.response) console.error(error.response.data);
+    throw new Error('Failed to parse syllabus file using AI');
+  }
+};
+
+export const generateFlashcardsForSubject = async (subjectName, chapters) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key is missing');
+  }
+
+  const prompt = `
+You are an intelligent study tutor AI. Generate a set of high-quality study flashcards for active recall.
+
+Subject: ${subjectName}
+Chapters/Topics to focus on:
+${chapters.join(', ')}
+
+Generate exactly 10 high-quality flashcards testing key concepts, definitions, or application questions from the topics above. 
+For each flashcard, define a clear, concise question/concept on the "front" and a direct, informative answer/explanation on the "back". Keep it engaging and challenging for study.
+
+Generate a JSON array with this exact structure:
+[
+  {
+    "front": "Question/Concept text...",
+    "back": "Answer/Explanation text..."
+  }
+]
+
+Return ONLY the JSON array. No explanations, no markdown formatting.
+`;
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.7
+        }
+      }
+    );
+
+    let resultText = response.data.candidates[0].content.parts[0].text;
+    resultText = resultText.trim();
+    if (resultText.startsWith('\`\`\`json')) resultText = resultText.substring(7);
+    if (resultText.startsWith('\`\`\`')) resultText = resultText.substring(3);
+    if (resultText.endsWith('\`\`\`')) resultText = resultText.substring(0, resultText.length - 3);
+
+    return JSON.parse(resultText.trim());
+  } catch (error) {
+    console.error('Gemini generateFlashcards failed:', error.message);
+    throw new Error('Failed to generate flashcards using AI');
+  }
+};

@@ -44,6 +44,8 @@ export const subjectAPI = {
   create: (data) => api.post('/subjects', data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
+  parseSyllabusText: (id, text) => api.post(`/subjects/${id}/syllabus/parse-text`, { text }),
+  parseSyllabusFile: (id, base64Data, mimeType) => api.post(`/subjects/${id}/syllabus/parse-file`, { base64Data, mimeType }),
 };
 
 // Schedule
@@ -73,6 +75,15 @@ export const notificationAPI = {
   getAll: () => api.get('/notifications'),
   markRead: (id) => api.put(`/notifications/${id}/read`),
   markAllRead: () => api.put('/notifications/read-all'),
+};
+
+// Flashcards
+export const flashcardAPI = {
+  getAll: (subjectId = '', due = false) => api.get(`/flashcards?subjectId=${subjectId}&due=${due}`),
+  create: (data) => api.post('/flashcards', data),
+  generateAI: (subjectId, chapters) => api.post('/flashcards/generate', { subjectId, chapters }),
+  review: (id, rating) => api.put(`/flashcards/${id}/review`, { rating }),
+  delete: (id) => api.delete(`/flashcards/${id}`),
 };
 
 export default api;

@@ -18,6 +18,7 @@ async function startServer() {
   const scheduleRoutes = (await import('./src/routes/scheduleRoutes.js')).default;
   const notificationRoutes = (await import('./src/routes/notificationRoutes.js')).default;
   const analyticsRoutes = (await import('./src/routes/analyticsRoutes.js')).default;
+  const flashcardRoutes = (await import('./src/routes/flashcardRoutes.js')).default;
 
   await connectDB();
 
@@ -35,6 +36,7 @@ async function startServer() {
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/flashcards', flashcardRoutes);
 
   app.get('/', (req, res) => {
     res.send('API is running...');

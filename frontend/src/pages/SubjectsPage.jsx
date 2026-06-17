@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Trash2, BookOpen, X, CheckSquare, Square, ChevronDown, ChevronUp, Sparkles, PlusCircle } from 'lucide-react';
+import { 
+  Plus, Edit3, Trash2, BookOpen, X, CheckSquare, Square, 
+  ChevronDown, ChevronUp, Sparkles, PlusCircle, UploadCloud, AlertCircle, RefreshCw, FileText
+} from 'lucide-react';
 import { subjectAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -30,6 +33,118 @@ export default function SubjectsPage() {
     syllabus: []
   });
   const [newChapterName, setNewChapterName] = useState('');
+
+  // Syllabus Import Wizard states
+  const [importingSubject, setImportingSubject] = useState(null);
+  const [importMethod, setImportMethod] = useState('upload'); // upload, paste
+  const [importText, setImportText] = useState('');
+  const [importFile, setImportFile] = useState(null); // { base64Data, mimeType, fileName }
+  const [extractedChapters, setExtractedChapters] = useState([]);
+  const [selectedExtracted, setSelectedExtracted] = useState([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [importStrategy, setImportStrategy] = useState('append'); // append, overwrite
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be under 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.split(',')[1];
+      setImportFile({
+        base64Data: base64String,
+        mimeType: file.type,
+        fileName: file.name
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleExtractSyllabus = async () => {
+    setIsExtracting(true);
+    try {
+      let chapters = [];
+      if (importMethod === 'paste') {
+        if (!importText.trim()) {
+          toast.error('Please paste some syllabus content first');
+          setIsExtracting(false);
+          return;
+        }
+        const res = await subjectAPI.parseSyllabusText(importingSubject.id, importText);
+        chapters = res.data;
+      } else {
+        if (!importFile) {
+          toast.error('Please select a file to upload first');
+          setIsExtracting(false);
+          return;
+        }
+        const res = await subjectAPI.parseSyllabusFile(
+          importingSubject.id,
+          importFile.base64Data,
+          importFile.mimeType
+        );
+        chapters = res.data;
+      }
+
+      if (!Array.isArray(chapters) || chapters.length === 0) {
+        throw new Error('No chapters could be extracted');
+      }
+
+      setExtractedChapters(chapters);
+      setSelectedExtracted(chapters); // select all by default
+      toast.success('Syllabus extracted! 🎓');
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to extract syllabus');
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleCommitImport = async () => {
+    if (selectedExtracted.length === 0) {
+      return toast.error('Please select at least one chapter to import');
+    }
+
+    const newChapters = selectedExtracted.map((name, index) => ({
+      id: (Date.now() + index).toString(),
+      name: name.trim(),
+      completed: false
+    }));
+
+    let updatedSyllabus = [];
+    if (importStrategy === 'append') {
+      updatedSyllabus = [...(importingSubject.syllabus || []), ...newChapters];
+    } else {
+      updatedSyllabus = newChapters;
+    }
+
+    try {
+      await subjectAPI.update(importingSubject.id, {
+        ...importingSubject,
+        syllabus: updatedSyllabus
+      });
+
+      toast.success('Syllabus updated successfully! 📚');
+      setImportingSubject(null);
+      resetImportWizard();
+      loadSubjects();
+    } catch (err) {
+      toast.error('Failed to update subject syllabus');
+    }
+  };
+
+  const resetImportWizard = () => {
+    setImportText('');
+    setImportFile(null);
+    setExtractedChapters([]);
+    setSelectedExtracted([]);
+    setImportStrategy('append');
+  };
 
   useEffect(() => {
     loadSubjects();
@@ -275,9 +390,22 @@ export default function SubjectsPage() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="max-w-2xl">
-                        <h4 className="text-sm font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-primary-500" /> Syllabus Tracker
-                        </h4>
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                          <h4 className="text-sm font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary-500" /> Syllabus Tracker
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImportingSubject(sub);
+                              resetImportWizard();
+                            }}
+                            className="px-3 py-1.5 bg-primary-500/10 hover:bg-primary-500 text-primary-600 hover:text-white border border-primary-500/20 hover:scale-105 active:scale-95 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" /> Smart Import (AI)
+                          </button>
+                        </div>
 
                         {/* Chapter List */}
                         {(!sub.syllabus || sub.syllabus.length === 0) ? (
@@ -449,6 +577,238 @@ export default function SubjectsPage() {
                   {editing ? 'Update Subject' : 'Add Subject'}
                 </button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Smart Syllabus Import Modal */}
+      <AnimatePresence>
+        {importingSubject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              if (!isExtracting) {
+                setImportingSubject(null);
+                resetImportWizard();
+              }
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-surface-900 border border-white/20 dark:border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-xl shadow-2xl relative max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary-500" />
+                  <h2 className="text-xl font-extrabold text-gray-900 dark:text-white font-display">
+                    Smart Syllabus Import
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    if (!isExtracting) {
+                      setImportingSubject(null);
+                      resetImportWizard();
+                    }
+                  }}
+                  disabled={isExtracting}
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-400 mb-6">
+                Parse a syllabus document or copy-pasted text using Gemini AI to automatically populate your chapters checklist for <strong className="text-slate-200 dark:text-slate-100">"{importingSubject.subjectName}"</strong>.
+              </p>
+
+              {/* Step 1: Input */}
+              {extractedChapters.length === 0 ? (
+                <div className="space-y-6">
+                  {/* Select Method Tabs */}
+                  <div className="flex bg-gray-100 dark:bg-slate-900/30 p-1 rounded-2xl border border-gray-150 dark:border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setImportMethod('upload')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        importMethod === 'upload'
+                          ? 'bg-white dark:bg-slate-900 text-primary-500 shadow-sm border border-gray-150 dark:border-white/5'
+                          : 'text-gray-500 hover:text-slate-200'
+                      }`}
+                    >
+                      <UploadCloud className="w-4 h-4" /> Document File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImportMethod('paste')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        importMethod === 'paste'
+                          ? 'bg-white dark:bg-slate-900 text-primary-500 shadow-sm border border-gray-150 dark:border-white/5'
+                          : 'text-gray-500 hover:text-slate-200'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" /> Paste Text Outline
+                    </button>
+                  </div>
+
+                  {importMethod === 'upload' ? (
+                    <div className="space-y-4">
+                      <div className="border-2 border-dashed border-gray-200 dark:border-white/10 rounded-2xl p-6 text-center hover:border-primary-500/50 transition-colors relative cursor-pointer group">
+                        <input
+                          type="file"
+                          accept=".pdf,.txt,.png,.jpg,.jpeg"
+                          onChange={handleFileChange}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          disabled={isExtracting}
+                        />
+                        <UploadCloud className="w-10 h-10 text-gray-400 group-hover:text-primary-500 transition-colors mx-auto mb-2" />
+                        <p className="text-xs font-bold text-gray-700 dark:text-slate-300">
+                          {importFile ? importFile.fileName : 'Click or Drag file here'}
+                        </p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                          Supports PDF, TXT, PNG, JPG (Max 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <textarea
+                        value={importText}
+                        onChange={(e) => setImportText(e.target.value)}
+                        placeholder="Paste course contents, syllabus text, or list of chapters here..."
+                        className="input-field min-h-[140px] text-sm resize-y"
+                        disabled={isExtracting}
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleExtractSyllabus}
+                    disabled={isExtracting || (importMethod === 'upload' && !importFile) || (importMethod === 'paste' && !importText.trim())}
+                    className="w-full btn-primary flex items-center justify-center gap-2 font-bold py-3"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        Gemini is reading syllabus...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Extract Syllabus Chapters with AI
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                /* Step 2: Preview & Import */
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
+                      Extracted Chapters ({selectedExtracted.length} selected)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedExtracted.length === extractedChapters.length) {
+                          setSelectedExtracted([]);
+                        } else {
+                          setSelectedExtracted(extractedChapters);
+                        }
+                      }}
+                      className="text-xs font-bold text-primary-500 hover:text-primary-600"
+                    >
+                      {selectedExtracted.length === extractedChapters.length ? 'Deselect All' : 'Select All'}
+                    </button>
+                  </div>
+
+                  {/* Checklist scrollable container */}
+                  <div className="border border-gray-150 dark:border-white/5 bg-slate-900/10 rounded-2xl p-4.5 max-h-56 overflow-y-auto space-y-2">
+                    {extractedChapters.map((chapterName, idx) => {
+                      const isSelected = selectedExtracted.includes(chapterName);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedExtracted(prev =>
+                              prev.includes(chapterName)
+                                ? prev.filter(c => c !== chapterName)
+                                : [...prev, chapterName]
+                            );
+                          }}
+                          className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left text-xs transition-colors ${
+                            isSelected
+                              ? 'bg-primary-500/10 border-primary-500/20 text-primary-600 dark:text-primary-400 font-semibold'
+                              : 'bg-transparent border-transparent text-gray-700 dark:text-gray-400 hover:bg-slate-900/35'
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-400'
+                          }`}>
+                            {isSelected && <span className="text-[10px] font-black">✓</span>}
+                          </div>
+                          <span className="truncate">{chapterName}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Strategy Choice: Append or Overwrite */}
+                  <div className="grid grid-cols-2 gap-3.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setImportStrategy('append')}
+                      className={`flex flex-col items-start p-3 rounded-2xl border text-left transition-all ${
+                        importStrategy === 'append'
+                          ? 'bg-primary-500/10 border-primary-500/25 text-primary-600 dark:text-primary-400 font-bold'
+                          : 'bg-white/40 dark:bg-slate-950/20 border-gray-150 dark:border-white/5 text-gray-700 dark:text-gray-400 hover:bg-slate-900/30'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold uppercase">Append Chapters</span>
+                      <span className="text-[10px] opacity-70 mt-0.5">Keep existing syllabus lists and add new topics</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImportStrategy('overwrite')}
+                      className={`flex flex-col items-start p-3 rounded-2xl border text-left transition-all ${
+                        importStrategy === 'overwrite'
+                          ? 'bg-red-500/10 border-red-500/25 text-red-650 dark:text-red-400 font-bold'
+                          : 'bg-white/40 dark:bg-slate-950/20 border-gray-150 dark:border-white/5 text-gray-700 dark:text-gray-400 hover:bg-slate-900/30'
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold uppercase">Overwrite Syllabus</span>
+                      <span className="text-[10px] opacity-70 mt-0.5">Delete current chapter listings and replace entirely</span>
+                    </button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-3 border-t border-gray-100 dark:border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setExtractedChapters([])}
+                      className="btn-secondary py-2.5 text-xs font-bold animate-none"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCommitImport}
+                      className="flex-1 btn-primary py-2.5 text-xs font-bold"
+                    >
+                      Import Selected Chapters ({selectedExtracted.length})
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}

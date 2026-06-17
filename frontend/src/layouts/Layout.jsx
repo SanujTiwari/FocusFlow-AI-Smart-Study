@@ -12,6 +12,7 @@ const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/schedule', icon: Calendar, label: 'Schedule' },
   { path: '/subjects', icon: BookOpen, label: 'Subjects' },
+  { path: '/flashcards', icon: GraduationCap, label: 'Flashcards' },
   { path: '/analytics', icon: BarChart3, label: 'Analytics' },
   { path: '/settings', icon: Settings, label: 'Settings' },
 ];

@@ -10,6 +10,7 @@ import SchedulePage from './pages/SchedulePage';
 import SubjectsPage from './pages/SubjectsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import FlashcardsPage from './pages/FlashcardsPage';
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -49,6 +50,7 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="subjects" element={<SubjectsPage />} />
+          <Route path="flashcards" element={<FlashcardsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
