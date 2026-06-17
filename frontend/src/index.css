@@ -147,4 +147,27 @@
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
+  .shadow-glow-cyan {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+  }
+  .shadow-glow-rose {
+    box-shadow: 0 0 30px rgba(244, 63, 94, 0.3);
+  }
+}
+
+/* Custom premium styles for sliders */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #4f46e5;
+  transform: scale(1.25);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
 }

@@ -171,6 +171,16 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Focus Mode Launch Button */}
+            <button
+              onClick={() => navigate('/focus')}
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-cyan-500/15 to-indigo-500/15 hover:from-cyan-500/25 hover:to-indigo-500/25 text-cyan-400 border border-cyan-500/30 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-md shadow-cyan-500/5 text-xs uppercase tracking-wider"
+              title="Enter Focus Mode"
+            >
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              Focus Mode 🧘
+            </button>
+
             {/* Notification Bell */}
             <div className="relative">
               <button
