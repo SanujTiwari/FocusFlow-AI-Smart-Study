@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 const AMBIENT_SOUNDS = [
   { id: 'silent', label: 'Silent', icon: VolumeX, url: null },
-  { id: 'lofi', label: 'Lofi Chill 🎵', icon: Sparkles, url: 'https://stream.zeno.fm/f3wvbbqrzg8uv' },
+  { id: 'lofi', label: 'Lofi Chill 🎵', icon: Sparkles, url: 'https://raw.githubusercontent.com/jigardave8/pro_contentfiles/main/lofi-chill-background-music-313055.mp3' },
   { id: 'rain', label: 'Heavy Rain 🌧️', icon: Volume2, url: 'https://assets.mixkit.co/active_storage/sfx/2433/2433-84.wav' },
   { id: 'cafe', label: 'Cozy Cafe ☕', icon: Coffee, url: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav' },
   { id: 'forest', label: 'Forest Birds 🌲', icon: Award, url: 'https://assets.mixkit.co/active_storage/sfx/2448/2448-84.wav' }
